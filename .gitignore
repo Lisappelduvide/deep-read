@@ -49,3 +49,10 @@ openclaw-workspace-state.json
 cookies.txt
 uploads/
 login_payload.json
+
+# Test files
+backend/test/
+*.test.js
+*.test.cjs
+*.spec.js
+*.spec.cjs

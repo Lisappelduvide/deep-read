@@ -15,6 +15,7 @@ import {
   UserCheck,
   UserX,
   KeyRound,
+  X,
 } from "lucide-react";
 import ConfirmModal from "../components/ui/ConfirmModal";
 import { clearAccountStorage } from "../utils/storage";
@@ -379,17 +380,28 @@ async function handleChangePassword(newPassword) {
 )}
 
       {(notice || (error && !isCreateModalOpen)) && (
-        <p
-          className={
-            error
-              ? "user-management-message is-error"
-              : "user-management-message is-success"
-          }
-          role={error ? "alert" : "status"}
-        >
-          {error || notice}
-        </p>
-      )}
+  <div
+    className={
+      error
+        ? "user-management-message is-error"
+        : "user-management-message is-success"
+    }
+    role={error ? "alert" : "status"}
+  >
+    <span>{error || notice}</span>
+
+    {!error && (
+      <button
+        type="button"
+        className="user-management-message-close"
+        aria-label="Dismiss message"
+        onClick={() => setNotice("")}
+      >
+        <X size={15} />
+      </button>
+    )}
+  </div>
+)}
 
       <section
         className="user-management-card"

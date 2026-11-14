@@ -756,3 +756,32 @@
     gap: 8px;
   }
 }
+
+.user-management-message {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.user-management-message-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.65;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.user-management-message-close:hover {
+  opacity: 1;
+  background: rgb(0 0 0 / 6%);
+}
