@@ -2127,6 +2127,29 @@ app.get('/api/media/:namespace/:userId/articles/:articleId/:fileName', (req, res
   return sendPrivateMedia(res, filePath);
 });
 
+app.get('/uploads/articles/:fileName', (req, res) => {
+  const session = currentSession(req);
+  if (!session) return res.status(404).end();
+  const { fileName } = req.params;
+  if (session.role === 'guest'
+    || !/^[A-Za-z0-9_-]+\.(?:png|jpe?g|gif|webp)$/i.test(fileName)) {
+    return res.status(404).end();
+  }
+  const legacyUrl = `/uploads/articles/${fileName}`;
+  const referenced = db.prepare(`SELECT 1 FROM article_blocks
+    JOIN articles ON articles.id = article_blocks.article_id
+    WHERE article_blocks.type = 'image'
+      AND (article_blocks.content = ? OR article_blocks.thumbnail = ?)
+      AND articles.user_id = ?
+    LIMIT 1`).get(legacyUrl, legacyUrl, session.userId);
+  if (!referenced) return res.status(404).end();
+  const filePath = path.resolve(legacyUploadsRoot, fileName);
+  if (!filePath.startsWith(`${path.resolve(legacyUploadsRoot)}${path.sep}`) || !fs.existsSync(filePath)) {
+    return res.status(404).end();
+  }
+  return sendPrivateMedia(res, filePath);
+});
+
 app.get('/uploads/articles/:articleId/:fileName', (req, res) => {
   const session = currentSession(req);
   if (!session) return res.status(404).end();
@@ -2389,11 +2412,20 @@ app.post('/api/articles', async (req, res) => {
           return res.status(400).json({ error: 'Image is not owned by this account or article.' });
         }
       } else {
-        const legacyImagePattern = new RegExp(
+        const legacyNestedImagePattern = new RegExp(
           `^/uploads/articles/${articleId}/[A-Za-z0-9_-]+(?:_thumb)?\\.webp$`,
         );
-        if (!legacyImagePattern.test(block.content)
-          || !fs.existsSync(path.resolve(legacyUploadsRoot, articleId, path.basename(block.content)))) {
+        const legacyFlatImagePattern = /^\/uploads\/articles\/[A-Za-z0-9_-]+\.(?:png|jpe?g|gif|webp)$/i;
+        const isNestedLegacyImage = legacyNestedImagePattern.test(block.content);
+        const isFlatLegacyImage = legacyFlatImagePattern.test(block.content);
+        const isExistingFlatReference = isFlatLegacyImage && db.prepare(`SELECT 1 FROM article_blocks
+          WHERE article_id = ? AND type = 'image' AND (content = ? OR thumbnail = ?) LIMIT 1`)
+          .get(articleId, block.content, block.content);
+        const filePath = isNestedLegacyImage
+          ? path.resolve(legacyUploadsRoot, articleId, path.basename(block.content))
+          : path.resolve(legacyUploadsRoot, path.basename(block.content));
+        if ((!isNestedLegacyImage && !isExistingFlatReference)
+          || !fs.existsSync(filePath)) {
           return res.status(400).json({ error: 'Image is not owned by this article.' });
         }
       }

@@ -363,10 +363,21 @@ function splitPageText(text) {
       continue;
     }
 
-    const sentences =
-      part.match(
-        /(?<!Mr|Mrs|Dr|U\.S)\.(?=\s+[A-Z])/ 
-      ) || [part];
+    const sentenceBoundary =
+      /(?<!Mr|Mrs|Dr|U\.S)\.(?=\s+[A-Z])/g;
+    const sentences = [];
+    let sentenceStart = 0;
+    let boundary;
+
+    while ((boundary = sentenceBoundary.exec(part)) !== null) {
+      const sentenceEnd = boundary.index + boundary[0].length;
+      sentences.push(part.slice(sentenceStart, sentenceEnd));
+      sentenceStart = sentenceEnd;
+    }
+
+    if (sentenceStart < part.length) {
+      sentences.push(part.slice(sentenceStart));
+    }
 
     for (const sentence of sentences) {
       if (
@@ -1023,6 +1034,23 @@ useEffect(() => {
   let active = true;
   setArticleLoadState({ articleId, status: "loading", error: "" });
 
+  const preloadedArticle = location.state?.article;
+  if (
+    String(preloadedArticle?.id) === String(articleId) &&
+    typeof preloadedArticle.content === "string" &&
+    Array.isArray(preloadedArticle.blocks)
+  ) {
+    setArticleContent(preloadedArticle.content);
+    setArticleTitleState(preloadedArticle.title || "");
+    setSourceMetadataState(normalizeSourceMetadata(preloadedArticle.sourceMetadata));
+    setHighlightsState(preloadedArticle.highlights || []);
+    setBlocksState(preloadedArticle.blocks);
+    setArticleLoadState({ articleId, status: "loaded", error: "" });
+    return () => {
+      active = false;
+    };
+  }
+
   async function loadArticle() {
     try {
       const fullArticle = await fetchArticle(articleId);
@@ -1048,7 +1076,7 @@ useEffect(() => {
   return () => {
     active = false;
   };
-}, [articleId]);
+}, [articleId, location.state]);
 
 // Scroll to top when article content first loads
 useEffect(() => {

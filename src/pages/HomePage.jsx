@@ -269,9 +269,7 @@ export default function HomePage({
 
           <article
             className="home-featured-article"
-            onClick={() =>
-              onOpenArticle(featuredArticle)
-            }
+            onClick={() => onOpenArticle(featuredArticle)}
           >
 
             {/* DATE */}

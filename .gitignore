@@ -56,3 +56,7 @@ backend/test/
 *.test.cjs
 *.spec.js
 *.spec.cjs
+
+# Local tool state
+.easyclaw/
+.workbuddy-ai/

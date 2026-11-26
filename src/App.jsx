@@ -302,19 +302,26 @@ useEffect(() => {
 
   async function openArticle(savedArticle) {
     try {
-      const fullArticle = await fetchArticle(savedArticle.id);
+      const fullArticle =
+        typeof savedArticle.content === "string" && Array.isArray(savedArticle.blocks)
+          ? savedArticle
+          : await fetchArticle(savedArticle.id);
+
       setArticle(fullArticle.content || "");
       setArticleTitle(fullArticle.title || "");
       setHighlights(fullArticle.highlights || []);
       setArticleBlocks(fullArticle.blocks || []);
+      navigate(`/articles/${fullArticle.id}`, {
+        state: { article: fullArticle },
+      });
     } catch (error) {
       console.error("Failed to open article:", error);
       setArticle(savedArticle.content || "");
       setArticleTitle(savedArticle.title || "");
       setHighlights(savedArticle.highlights || []);
       setArticleBlocks(savedArticle.blocks || []);
+      navigate(`/articles/${savedArticle.id}`);
     }
-    navigate(`/articles/${savedArticle.id}`);
   }
 
     function newArticle() {
