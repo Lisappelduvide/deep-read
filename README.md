@@ -6,6 +6,8 @@ The application is a React single-page frontend served by an Express API.
 
 > This document describes behavior verified against the current source code. For the full production runbook, see [DEPLOYMENT.md](./DEPLOYMENT.md).
 
+English | [简体中文](./README.zh-CN.md)
+
 ## Contents
 
 - [Features](#features)
